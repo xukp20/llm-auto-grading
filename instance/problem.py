@@ -1,7 +1,7 @@
 """
     Class for student's answer.
 """
-from instance.ref_problem import GradingRule
+from instance.ref_problem import GradingRule, Solution
 
 # grading status enum
 from enum import Enum
@@ -20,11 +20,26 @@ class StudentGradingRule(GradingRule):
     def __str__(self):
         return f"{self.rule} ({self.score}) {self.graded_score}"
     
-    def format_md_table(self):
-        string = "| 评分规则 | 分值 | 得分 | 评分过程 |\n"
-        string += "| --- | --- | --- | --- |\n"
+    def format_md_table(self, title=True):
+        string = ""
+        if title:
+            string += "| 评分规则 | 分值 | 得分 | 评分过程 |\n"
+            string += "| --- | --- | --- | --- |\n"
         string += f"| {self.rule} | {self.score} | {self.graded_score} | {self.process} |\n"
         return string
+    
+    def to_dict(self):
+        return {
+            "subproblem_id": self.subproblem_id,
+            "rule": self.rule,
+            "score": self.score,
+            "graded_score": self.graded_score,
+            "process": self.process
+        }
+    
+    @staticmethod
+    def from_dict(data):
+        return StudentGradingRule(GradingRule(data["rule"], data["score"], data["subproblem_id"]), data["process"], data["graded_score"])
 
 # for subproblem
 class StudentSolution:
@@ -34,13 +49,17 @@ class StudentSolution:
 
         self.status = GradingStatus.ungraded
         self.rules = []
+
         self.solution_id = None
+        self.correct_answer = None
+
         self.trace = None
 
     def __str__(self):
         return f"{self.answer}"
     
-    def set_solution_id(self, solution_id):
+    def set_solution(self, correct_answer, solution_id):
+        self.correct_answer = correct_answer
         self.solution_id = solution_id
 
     def set_unknown_solution(self):
@@ -59,6 +78,43 @@ class StudentSolution:
             return
         
         self.status = GradingStatus.graded
+
+    def to_dict(self):
+        return {
+            "subproblem_id": self.subproblem_id,
+            "answer": self.answer,
+            "status": self.status.name,
+            "rules": [rule.to_dict() for rule in self.rules],
+            "solution_id": self.solution_id,
+            "correct_answer": self.correct_answer,
+            "trace": self.trace
+        }
+    
+    @staticmethod
+    def from_dict(data):
+        student_solution = StudentSolution(data["answer"], data["subproblem_id"])
+        student_solution.status = GradingStatus[data["status"]]
+        student_solution.rules = [StudentGradingRule.from_dict(rule) for rule in data["rules"]]
+        student_solution.solution_id = data["solution_id"]
+        student_solution.correct_answer = data["correct_answer"]
+        student_solution.trace = data["trace"]
+        return student_solution
+    
+    def format_md_table(self):
+        string = ""
+        string += f"#### Status\n{self.status.name}\n"
+        string += f"#### Answer\n{self.answer}\n"
+        string += f"#### Matched solution ID\n{self.solution_id if self.solution_id is not None else 'N/A'}\n"
+        string += f"#### Correct solution\n{self.correct_answer if self.correct_answer else 'N/A'}\n"
+        string += "#### Grading rules\n"
+        string += "| 评分规则 | 分值 | 得分 | 评分过程 |\n"
+        string += "| --- | --- | --- | --- |\n"
+        for rule in self.rules:
+            string += rule.format_md_table(title=False)
+        string += "\n"
+        if self.trace:
+            string += f"#### Trace\n{self.trace}\n"
+        return string
     
 # for problem
 class StudentProblem:
@@ -68,6 +124,12 @@ class StudentProblem:
     def __str__(self):
         return f"{self.answers}"
     
+    def to_dict(self):
+        return {key: value.to_dict() for key, value in self.answers.items()}
+    
+    @staticmethod
+    def from_dict(data):
+        return StudentProblem(data)
 
 class StudentPA:
     def __init__(self, problems):
@@ -75,6 +137,13 @@ class StudentPA:
         
     def __str__(self):
         return f"{self.problems}"
+    
+    def to_dict(self):
+        return {key: value.to_dict() for key, value in self.problems.items()}
+    
+    @staticmethod
+    def from_dict(data):
+        return StudentPA(data)
     
     @staticmethod
     def from_json(json_file):

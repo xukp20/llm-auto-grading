@@ -25,26 +25,27 @@ class ExampleChecker(BaseChecker):
         return process, score
 
     def check(self, ref_pa, student_pa):
-        for problem_id, ref_problem in ref_pa.problems.items():
+        from tqdm import tqdm
+
+        for problem_id, ref_problem in tqdm(ref_pa.problems.items(), desc="Checking problems", total=len(ref_pa.problems)):
             student_problem = student_pa.problems[problem_id]
             
-            for subproblem_id, ref_subproblem in ref_problem.answers.items():
+            for subproblem_id, ref_subproblem in tqdm(ref_problem.answers.items(), desc="Checking subproblems", total=len(ref_problem.answers)):
                 student_solution = student_problem.answers[subproblem_id]
                 
                 # TODO: add solution matching logic here
                 solution_id = 0
                 ref_solution = ref_subproblem.solutions[solution_id]
-                student_solution.set_solution_id(solution_id)
+                student_solution.set_solution(ref_solution.answer, solution_id)
 
                 # check rule by rule
-                for id, rule in enumerate(ref_solution.rules):
+                for id, rule in tqdm(enumerate(ref_solution.rules), desc="Checking rules", total=len(ref_solution.rules)):
                     inputs = format_inputs(
                         ref_problem.problem,
                         ref_solution,
                         student_solution,
                         id,
                     )
-                    print(inputs["query"])
                     # call the grading api
                     response = completion_messages(inputs, self.grading_key)
                     process, score = self.parse_grading_response(response)
