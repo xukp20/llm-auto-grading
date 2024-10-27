@@ -4,7 +4,7 @@ from instance.ref_problem import RefPA
 import os
 base_path = os.path.dirname(os.path.realpath(__file__))
 hw_base = "data/1"
-student_id = "2022011095_2893"
+student_id = "1"
 
 ref_path = os.path.join(hw_base, "refs/HW1.json")
 student_path = os.path.join(hw_base, f"raw/{student_id}.json")

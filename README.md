@@ -8,6 +8,7 @@ Framework for auto grading using LLMs.
       - [ ] Add logic to go through all the solution of the given subproblem to match the student answer, or report a failure if no match is found.
     - [x] Default reporter to generate json and md report for each subproblem
       - [ ] Add agg scores at the end of the report for each subproblem and each problem
+      - [ ] Add ref scores to read TA's score for the student's solution and compare with the auto grading score
   - [x] Use openai api
   - [ ] Add parallel processing for speedup
   - [x] Add example ref for three problems and one example student pa
