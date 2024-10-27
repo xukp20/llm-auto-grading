@@ -14,11 +14,18 @@ student_path = os.path.join(base_path, student_path)
 ref_pa = RefPA.from_json(ref_path)
 student_pa = StudentPA.from_json(student_path)
 
-key_path = "configs/grading_key.txt"
-app_key = open(key_path, "r").read().strip()
+# dify api key
+# key_path = "configs/grading_key.txt"
+# app_key = open(key_path, "r").read().strip()
+
+# local deepseek api key
+import json, os
+api_configs = json.load(open("api_config.json", "r"))
+os.environ["OPENAI_API_KEY"] = api_configs["api_key"]
+os.environ["OPENAI_BASE_URL"] = api_configs["base_url"]
 
 from checker.example_checker import ExampleChecker
-checker = ExampleChecker(app_key)
+checker = ExampleChecker()
 
 student_pa = checker.check(ref_pa, student_pa)
 

@@ -7,14 +7,15 @@ import json
 from checker.base import BaseChecker
 from instance.problem import *
 from instance.ref_problem import *
-from utils.wrappers.example_grading import format_inputs
+from utils.wrappers.example_grading import format_dify_inputs, format_openai_inputs
 from utils.apis.dify_api import completion_messages
+from utils.apis.openai_api import openai_completion
 
 # tools 
 # wrapper for checker api
 
 class ExampleChecker(BaseChecker):
-    def __init__(self, grading_key):
+    def __init__(self, grading_key=None):
         self.grading_key = grading_key
 
     def parse_grading_response(self, response):
@@ -40,18 +41,27 @@ class ExampleChecker(BaseChecker):
 
                 # check rule by rule
                 for id, rule in tqdm(enumerate(ref_solution.rules), desc="Checking rules", total=len(ref_solution.rules)):
-                    inputs = format_inputs(
+                    # inputs = format_inputs(
+                    #     ref_problem.problem,
+                    #     ref_solution,
+                    #     student_solution,
+                    #     id,
+                    # )
+                    # # call the grading api
+                    # response = completion_messages(inputs, self.grading_key)
+
+                    inputs = format_openai_inputs(
                         ref_problem.problem,
                         ref_solution,
                         student_solution,
                         id,
                     )
-                    # call the grading api
-                    response = completion_messages(inputs, self.grading_key)
+                    response = openai_completion(**inputs)
+
                     process, score = self.parse_grading_response(response)
                     
-                    print(f"Process: {process}")
-                    print(f"Score: {score}")
+                    tqdm.write(f"Process: {process}")
+                    tqdm.write(f"Score: {score}")
                     if not rule.check_valid_score(score):
                         student_solution.set_error(f"Invalid score {score} for rule {rule.rule} (max {rule.score})")
 
