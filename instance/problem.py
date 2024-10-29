@@ -116,6 +116,20 @@ class StudentSolution:
             string += f"#### Trace\n{self.trace}\n"
         return string
     
+    def summarize(self):
+        """
+            Sum the graded score and total score.
+        """
+        if self.status == GradingStatus.ungraded or self.status == GradingStatus.error:
+            return None, None
+        
+        graded_score = 0
+        total_score = 0
+        for rule in self.rules:
+            graded_score += rule.graded_score
+            total_score += rule.score
+        return graded_score, total_score
+    
 # for problem
 class StudentProblem:
     def __init__(self, answers):
@@ -129,12 +143,15 @@ class StudentProblem:
     
     @staticmethod
     def from_dict(data):
-        return StudentProblem(data)
+        problem = StudentProblem(data)
+        for key in data:
+            problem.answers[key] = StudentSolution.from_dict(data[key])
+        return problem
 
 class StudentPA:
     def __init__(self, problems):
         self.problems = {key: StudentProblem(value) for key, value in problems.items()}
-        
+    
     def __str__(self):
         return f"{self.problems}"
     
@@ -143,11 +160,21 @@ class StudentPA:
     
     @staticmethod
     def from_dict(data):
-        return StudentPA(data)
+        student_pa = StudentPA(data)
+        for key in data:
+            student_pa.problems[key] = StudentProblem.from_dict(data[key])
+        return student_pa
     
     @staticmethod
-    def from_json(json_file):
+    def load_raw(json_file):
         import json
         with open(json_file, "r") as f:
             data = json.load(f)
         return StudentPA(data)
+    
+    @staticmethod
+    def load_graded(json_file):
+        import json
+        with open(json_file, "r") as f:
+            data = json.load(f)
+        return StudentPA.from_dict(data)

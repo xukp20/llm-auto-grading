@@ -12,11 +12,7 @@ ref_path = os.path.join(base_path, ref_path)
 student_path = os.path.join(base_path, student_path)
 
 ref_pa = RefPA.from_json(ref_path)
-student_pa = StudentPA.from_json(student_path)
-
-# dify api key
-# key_path = "configs/grading_key.txt"
-# app_key = open(key_path, "r").read().strip()
+student_pa = StudentPA.load_raw(student_path)
 
 # local deepseek api key
 import json, os

@@ -5,6 +5,7 @@
 import json, os
 
 from instance.problem import StudentPA
+from instance.aggregator import Aggregator
 
 class DefaultReporter:
     def __init__(self, results_dir):
@@ -14,7 +15,8 @@ class DefaultReporter:
         output_file = os.path.join(self.results_dir, output_file)
         with open(output_file, "w") as f:
             json.dump(student_pa.to_dict(), f, indent=4, ensure_ascii=False)
-
+        print(f"JSON report generated at {output_file}")
+        
     def generate_md_report(self, student_pa, output_file):
         output_file = os.path.join(self.results_dir, output_file)
         with open(output_file, "w") as f:
@@ -26,6 +28,10 @@ class DefaultReporter:
                     f.write(f"### Subproblem {subproblem_id}\n")
                     f.write(subproblem.format_md_table())
                     f.write("\n")
+
+            f.write(Aggregator.format_md_table(student_pa))
+
+        print(f"Markdown report generated at {output_file}")
 
     def generate_md_report_from_json(self, input_file, output_file):
         with open(input_file, "r") as f:
